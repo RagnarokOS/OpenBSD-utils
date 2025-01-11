@@ -143,6 +143,8 @@ setthetime(char *p, const char *pformat)
 	int yearset = 0;
 
 	lt = localtime(&tval);
+	if (lt == NULL)
+		errx(1, "conversion error");
 
 	lt->tm_isdst = -1;			/* correct for DST */
 
