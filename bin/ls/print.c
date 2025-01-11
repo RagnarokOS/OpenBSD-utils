@@ -86,7 +86,8 @@ printlong(DISPLAY *dp)
 	NAMES *np;
 	char buf[20];
 
-	if (dp->list->fts_level != FTS_ROOTLEVEL && (f_longform || f_size))
+	if ((dp->list == NULL || dp->list->fts_level != FTS_ROOTLEVEL) &&
+	    (f_longform || f_size))
 		(void)printf("total %llu\n", howmany(dp->btotal, blocksize));
 
 	for (p = dp->list; p; p = p->fts_link) {
@@ -108,12 +109,9 @@ printlong(DISPLAY *dp)
 		if (f_flags)
 			(void)printf("%-*s ", dp->s_flags, np->flags);
 		if (S_ISCHR(sp->st_mode) || S_ISBLK(sp->st_mode))
-			(void)printf("%3u, %3u ",
-			    major(sp->st_rdev), minor(sp->st_rdev));
-		else if (dp->bcfile)
-			(void)printf("%*s%*lld ",
-			    8 - dp->s_size, "", dp->s_size,
-			    (long long)sp->st_size);
+			(void)printf("%*u, %*u ",
+			    dp->s_major, major(sp->st_rdev),
+			    dp->s_minor, minor(sp->st_rdev));
 		else
 			printsize(dp->s_size, sp->st_size);
 		if (f_accesstime)
@@ -197,7 +195,8 @@ printcol(DISPLAY *dp)
 	if (num % numcols)
 		++numrows;
 
-	if (dp->list->fts_level != FTS_ROOTLEVEL && (f_longform || f_size))
+	if ((dp->list == NULL || dp->list->fts_level != FTS_ROOTLEVEL) &&
+	    (f_longform || f_size))
 		(void)printf("total %llu\n", howmany(dp->btotal, blocksize));
 	for (row = 0; row < numrows; ++row) {
 		for (base = row, col = 0;;) {
@@ -241,6 +240,7 @@ static void
 printtime(time_t ftime)
 {
 	char f_date[DATELEN];
+	struct tm *tm;
 	static time_t now;
 	static int now_set = 0;
 
@@ -252,9 +252,14 @@ printtime(time_t ftime)
 	/*
 	 * convert time to string, and print
 	 */
+	if ((tm = localtime(&ftime)) == NULL) {
+		/* Invalid time stamp, just display the epoch. */
+		ftime = 0;
+		tm = localtime(&ftime);
+	}
 	if (strftime(f_date, sizeof(f_date), f_sectime ? "%b %e %H:%M:%S %Y" :
 	    (ftime <= now - SIXMONTHS || ftime > now) ? "%b %e  %Y" :
-	    "%b %e %H:%M", localtime(&ftime)) == 0)
+	    "%b %e %H:%M", tm) == 0)
 		f_date[0] = '\0';
 
 	printf("%s ", f_date);

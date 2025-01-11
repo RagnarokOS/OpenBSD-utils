@@ -351,7 +351,13 @@ traverse(int argc, char *argv[], int options)
 	    fts_open(argv, options, f_nosort ? NULL : mastercmp)) == NULL)
 		err(1, NULL);
 
-	display(NULL, fts_children(ftsp, 0));
+	/*
+	 * We ignore errors from fts_children here since they will be
+	 * replicated and signalled on the next call to fts_read() below.
+	 */
+	chp = fts_children(ftsp, 0);
+	if (chp != NULL)
+		display(NULL, chp);
 	if (f_listdir)
 		return;
 
@@ -365,8 +371,10 @@ traverse(int argc, char *argv[], int options)
 		switch (p->fts_info) {
 		case FTS_D:
 			if (p->fts_name[0] == '.' &&
-			    p->fts_level != FTS_ROOTLEVEL && !f_listdot)
+			    p->fts_level != FTS_ROOTLEVEL && !f_listdot) {
+				(void)fts_set(ftsp, p, FTS_SKIP);
 				break;
+			}
 
 			/*
 			 * If already output something, put out a newline as
@@ -375,7 +383,7 @@ traverse(int argc, char *argv[], int options)
 			 */
 			if (output)
 				(void)printf("\n%s:\n", p->fts_path);
-			else if (argc > 1) {
+			else if (f_recursive || argc > 1) {
 				(void)printf("%s:\n", p->fts_path);
 				output = 1;
 			}
@@ -424,29 +432,20 @@ display(FTSENT *p, FTSENT *list)
 	unsigned long long btotal;
 	blkcnt_t maxblock;
 	ino_t maxinode;
+	unsigned int maxmajor, maxminor;
 	int bcfile, flen, glen, ulen, maxflags, maxgroup, maxuser, maxlen;
 	int entries, needstats;
 	int width;
 	const char *user, *group;
 	char nuser[12], ngroup[12];
-	char buf[21];	/* 64 bits == 20 digits */
 	char *flags = NULL;
-
-	/*
-	 * If list is NULL there are two possibilities: that the parent
-	 * directory p has no children, or that fts_children() returned an
-	 * error.  We ignore the error case since it will be replicated
-	 * on the next call to fts_read() on the post-order visit to the
-	 * directory p, and will be signalled in traverse().
-	 */
-	if (list == NULL)
-		return;
 
 	needstats = f_inode || f_longform || f_size;
 	flen = 0;
 	btotal = maxblock = maxinode = maxlen = maxnlink = 0;
 	bcfile = 0;
 	maxuser = maxgroup = maxflags = 0;
+	maxmajor = maxminor = 0;
 	maxsize = 0;
 	for (cur = list, entries = 0; cur != NULL; cur = cur->fts_link) {
 		if (cur->fts_info == FTS_ERR || cur->fts_info == FTS_NS) {
@@ -523,9 +522,13 @@ display(FTSENT *p, FTSENT *list)
 				(void)strlcpy(np->group, group, glen + 1);
 
 				if (S_ISCHR(sp->st_mode) ||
-				    S_ISBLK(sp->st_mode))
+				    S_ISBLK(sp->st_mode)) {
 					bcfile = 1;
-
+					if (maxmajor < major(sp->st_rdev))
+						maxmajor = major(sp->st_rdev);
+					if (maxminor < minor(sp->st_rdev))
+						maxminor = minor(sp->st_rdev);
+				}
 				if (f_flags) {
 					np->flags = &np->data[ulen + 1 + glen + 1];
 					(void)strlcpy(np->flags, flags, flen + 1);
@@ -538,32 +541,43 @@ display(FTSENT *p, FTSENT *list)
 		++entries;
 	}
 
-	if (!entries)
+	/*
+	 * If there are no entries to display, we normally stop right
+	 * here.  However, we must continue if we have to display the
+	 * total block count.  In this case, we display the total only
+	 * on the second (p != NULL) pass.
+	 */
+	if (!entries && (!(f_longform || f_size) || p == NULL))
 		return;
 
 	d.list = list;
 	d.entries = entries;
 	d.maxlen = maxlen;
 	if (needstats) {
-		d.bcfile = bcfile;
 		d.btotal = btotal;
-		(void)snprintf(buf, sizeof(buf), "%llu",
+		d.s_block = snprintf(NULL, 0, "%llu",
 		    (unsigned long long)maxblock);
-		d.s_block = strlen(buf);
 		d.s_flags = maxflags;
 		d.s_group = maxgroup;
-		(void)snprintf(buf, sizeof(buf), "%llu",
+		d.s_inode = snprintf(NULL, 0, "%llu",
 		    (unsigned long long)maxinode);
-		d.s_inode = strlen(buf);
-		(void)snprintf(buf, sizeof(buf), "%lu",
+		d.s_nlink = snprintf(NULL, 0, "%lu",
 		    (unsigned long)maxnlink);
 		d.s_nlink = strlen(buf);
-		if (!f_humanval) {
-			(void)snprintf(buf, sizeof(buf), "%lld",
+		if (!f_humanval)
+			d.s_size = snprintf(NULL, 0, "%lld",
 			    (long long)maxsize);
-			d.s_size = strlen(buf);
-		} else
+		else
 			d.s_size = FMT_SCALED_STRSIZE-2; /* no - or '\0' */
+		d.s_major = d.s_minor = 3;
+		if (bcfile) {
+			d.s_major = snprintf(NULL, 0, "%u", maxmajor);
+			d.s_minor = snprintf(NULL, 0, "%u", maxminor);
+			if (d.s_size <= d.s_major + 2 + d.s_minor)
+				d.s_size = d.s_major + 2 + d.s_minor;
+			else
+				d.s_major = d.s_size - 2 - d.s_minor;
+		}
 		d.s_user = maxuser;
 	}
 
