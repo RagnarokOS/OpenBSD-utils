@@ -563,7 +563,6 @@ display(FTSENT *p, FTSENT *list)
 		    (unsigned long long)maxinode);
 		d.s_nlink = snprintf(NULL, 0, "%lu",
 		    (unsigned long)maxnlink);
-		d.s_nlink = strlen(buf);
 		if (!f_humanval)
 			d.s_size = snprintf(NULL, 0, "%lld",
 			    (long long)maxsize);
