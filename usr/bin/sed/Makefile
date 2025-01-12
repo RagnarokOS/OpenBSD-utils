@@ -2,7 +2,7 @@
 
 include ${TOPDIR}/usr/share/mk/progs.mk
 
-CC ?=		clang
+CC ?=		${CC}
 CFLAGS =	-O2 -pipe ${HARDENING_CPPFLAGS} ${HARDENING_CFLAGS} ${OBSD_INC}
 LDFLAGS =	${HARDENING_LDFLAGS}
 LIBS	=	${OBSD_LIB}

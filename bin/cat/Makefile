@@ -2,6 +2,7 @@
 
 include ${TOPDIR}/usr/share/mk/progs.mk
 
+CC	=	${CC}
 CFLAGS	=	-O2 -pipe ${HARDENING_CFLAGS} ${HARDENING_CPPFLAGS}
 LDFLAGS	=	${HARDENING_LDFLAGS} -lbsd
 

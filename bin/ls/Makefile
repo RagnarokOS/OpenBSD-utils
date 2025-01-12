@@ -3,7 +3,7 @@
 
 include ${TOPDIR}/usr/share/mk/progs.mk
 
-CC ?=		cc
+CC ?=		${CC}
 CFLAGS ?=	${O_FLAG} -pipe ${CFLAGS_LTO} ${HARDENING_CPPFLAGS} ${HARDENING_CFLAGS}
 CFLAGS +=	${OBSD_INC}
 LDFLAGS =	${LDFLAGS_LTO} ${HARDENING_LDFLAGS}
