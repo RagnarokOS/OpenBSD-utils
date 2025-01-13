@@ -141,7 +141,6 @@ main(int argc, char *argv[])
 			setvbuf(stdout, NULL, _IOLBF, 0);
 			break;
 		default:
-		case '?':
 			(void)fprintf(stderr,
 			    "usage: sed [-aEnru] [-i[extension]] command [file ...]\n"
 			    "       sed [-aEnru] [-e command] [-f command_file] [-i[extension]] [file ...]\n");
@@ -186,11 +185,11 @@ main(int argc, char *argv[])
 }
 
 /*
- * Like fgets, but go through the chain of compilation units chaining them
+ * Like getline, but go through the chain of compilation units chaining them
  * together.  Empty strings and files are ignored.
  */
 char *
-cu_fgets(char **outbuf, size_t *outsize)
+cu_getline(char **outbuf, size_t *outsize)
 {
 	static enum {ST_EOF, ST_FILE, ST_STRING} state = ST_EOF;
 	static FILE *f;		/* Current open file */
@@ -287,7 +286,7 @@ finish_file(void)
 		fclose(infile);
 		if (*oldfname != '\0') {
 			if (rename(fname, oldfname) != 0) {
-				warning("rename()");
+				warning("rename(): %s", strerror(errno));
 				unlink(tmpfname);
 				exit(1);
 			}
@@ -297,7 +296,11 @@ finish_file(void)
 			if (outfile != NULL && outfile != stdout)
 				fclose(outfile);
 			outfile = NULL;
-			rename(tmpfname, fname);
+			if (rename(tmpfname, fname) != 0) {
+				warning("rename(): %s", strerror(errno));
+				unlink(tmpfname);
+				exit(1);
+			}
 			*tmpfname = '\0';
 		}
 		outfname = NULL;
@@ -305,11 +308,11 @@ finish_file(void)
 }
 
 /*
- * Like fgets, but go through the list of files chaining them together.
+ * Like getline, but go through the list of files chaining them together.
  * Set len to the length of the line.
  */
 int
-mf_fgets(SPACE *sp, enum e_spflag spflag)
+mf_getline(SPACE *sp, enum e_spflag spflag)
 {
 	struct stat sb;
 	size_t len;
@@ -354,7 +357,7 @@ mf_fgets(SPACE *sp, enum e_spflag spflag)
 		}
 		fname = files->fname;
 		if (inplace != NULL) {
-			if (lstat(fname, &sb) != 0)
+			if (stat(fname, &sb) != 0)
 				error(FATAL, "%s: %s", fname,
 				    strerror(errno ? errno : EIO));
 			if (!S_ISREG(sb.st_mode))
@@ -369,19 +372,21 @@ mf_fgets(SPACE *sp, enum e_spflag spflag)
 				if (len > sizeof(oldfname))
 					error(FATAL, "%s: name too long", fname);
 			}
-			strlcpy(dirbuf, fname, sizeof(dirbuf));
+			len = strlcpy(dirbuf, fname, sizeof(dirbuf));
+			if (len >= sizeof(dirbuf))
+				error(FATAL, "%s: name too long", fname);
 			len = snprintf(tmpfname, sizeof(tmpfname),
 			    "%s/sedXXXXXXXXXX", dirname(dirbuf));
 			if (len >= sizeof(tmpfname))
 				error(FATAL, "%s: name too long", fname);
 			if ((fd = mkstemp(tmpfname)) == -1)
 				error(FATAL, "%s: %s", fname, strerror(errno));
+			(void)fchown(fd, sb.st_uid, sb.st_gid);
+			(void)fchmod(fd, sb.st_mode & ALLPERMS);
 			if ((outfile = fdopen(fd, "w")) == NULL) {
 				unlink(tmpfname);
 				error(FATAL, "%s", fname);
 			}
-			fchown(fileno(outfile), sb.st_uid, sb.st_gid);
-			fchmod(fileno(outfile), sb.st_mode & ALLPERMS);
 			outfname = tmpfname;
 			linenum = 0;
 			resetstate();

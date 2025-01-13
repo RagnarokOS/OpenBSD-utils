@@ -151,7 +151,7 @@ compile_stream(struct s_command **link)
 
 	stack = 0;
 	for (;;) {
-		if ((p = cu_fgets(&lbuf, &bufsize)) == NULL) {
+		if ((p = cu_getline(&lbuf, &bufsize)) == NULL) {
 			if (stack != 0)
 				error(COMPILE, "unexpected EOF (pending }'s)");
 			return (link);
@@ -536,7 +536,7 @@ compile_subst(char *p, struct s_subst *s)
 			*sp++ = *p;
 		}
 		size += sp - op;
-	} while ((p = cu_fgets(&lbuf, &bufsize)));
+	} while ((p = cu_getline(&lbuf, &bufsize)));
 	error(COMPILE, "unterminated substitute in regular expression");
 }
 
@@ -678,7 +678,7 @@ compile_text(void)
 
 	lbuf = text = NULL;
 	asize = size = 0;
-	while ((p = cu_fgets(&lbuf, &bufsize))) {
+	while ((p = cu_getline(&lbuf, &bufsize))) {
 		size_t len = ROUNDLEN(strlen(p) + 1);
 		if (asize - size < len) {
 			do {
