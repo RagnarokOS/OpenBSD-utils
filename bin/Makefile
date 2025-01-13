@@ -1,5 +1,5 @@
 # Makefile for /bin dir
-# $Ragnarok: Makefile,v 1.1 2025/01/10 18:57:58 lecorbeau Exp $
+# $Ragnarok: Makefile,v 1.2 2025/01/13 16:19:39 lecorbeau Exp $
 
 MAKE	= make -C
 
@@ -19,10 +19,4 @@ install:
 clean:
 	for _dir in ${SUBDIRS}; do \
 		${MAKE} $$_dir clean; \
-		done
-
-# If we're building deb packages
-deb:
-	for _dir in ${SUBDIRS}; do \
-		${MAKE} $$_dir deb; \
 		done
