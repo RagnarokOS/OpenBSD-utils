@@ -3,7 +3,7 @@
 
 MAKE	= make -C
 
-SUBDIRS	= apply banner cut basename dirname nl printf
+SUBDIRS	= apply arch banner cut basename dirname nl printf
 
 all:
 	for _dir in ${SUBDIRS}; do \
