@@ -1,10 +1,10 @@
 # Makefile for /bin dir
-# $Ragnarok: Makefile,v 1.5 2025/01/26 20:36:30 lecorbeau Exp $
+# $Ragnarok: Makefile,v 1.6 2025/01/27 18:22:05 lecorbeau Exp $
 
 MAKE	= make -C
 
 # There will be many directories
-SUBDIRS	= cat cp date echo ln ls mkdir mv pwd rm rmdir
+SUBDIRS	= cat cp date echo ln ls mkdir mv pwd rm rmdir sleep test
 
 all:
 	for _dir in ${SUBDIRS}; do \

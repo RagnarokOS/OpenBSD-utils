@@ -1,9 +1,9 @@
 # Makefile for usr/bin
-# $Ragnarok: Makefile,v 1.17 2024/02/19 17:36:08 lecorbeau Exp $
+# $Ragnarok: Makefile,v 1.1 2025/01/27 18:22:41 lecorbeau Exp $
 
 MAKE	= make -C
 
-SUBDIRS	= apply arch banner cut basename dirname nl printf
+SUBDIRS	= apply arch banner cut basename dirname nl printf true
 
 all:
 	for _dir in ${SUBDIRS}; do \
