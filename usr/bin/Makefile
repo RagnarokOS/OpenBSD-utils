@@ -1,10 +1,10 @@
 # Makefile for usr/bin
-# $Ragnarok: Makefile,v 1.2 2025/01/27 18:52:29 lecorbeau Exp $
+# $Ragnarok: Makefile,v 1.3 2025/01/28 18:07:01 lecorbeau Exp $
 
 MAKE	= make -C
 
-SUBDIRS	= apply arch banner comm cut basename \
-	  dirname false nl printf true
+SUBDIRS	= apply arch banner comm csplit cut basename \
+	  dirname false nl printf true uname wc
 
 all:
 	for _dir in ${SUBDIRS}; do \
