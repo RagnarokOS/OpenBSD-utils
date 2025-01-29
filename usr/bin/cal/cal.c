@@ -52,9 +52,6 @@
 #define	MAXDAYS			42		/* max slots in a month array */
 #define	SPACE			-1		/* used in day array */
 
-/* Ragnarok addition. If not declared, a compilation error occurs. */
-extern char *strptime(const char *, const char *, struct tm *);
-
 static const int days_in_month[2][13] = {
 	{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
 	{0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},

@@ -45,9 +45,6 @@
 
 #define	DEFLINEWIDTH	80
 
-/* Ragnarok addition. If undeclared, it won't build */
-extern int wcwidth(wchar_t);
-
 static void fold(unsigned int);
 static int isu8cont(unsigned char);
 static __dead void usage(void);

@@ -184,9 +184,6 @@
 #include <wchar.h>
 #include <wctype.h>
 
-/* Ragnarok addition. If undeclared, it won't build */
-extern int wcwidth(wchar_t);
-
 /* Something that, we hope, will never be a genuine line length,
  * indentation etc.
  */

@@ -5,7 +5,7 @@ include ${TOPDIR}/usr/share/mk/progs.mk
 
 CC ?=		cc
 CFLAGS ?=	${O_FLAG} -pipe ${HARDENING_CPPFLAGS} ${HARDENING_CFLAGS}
-CFLAGS +=	${OBSD_INC}
+CFLAGS +=	${OBSD_INC} -D_GNU_SOURCE
 LDFLAGS =	${HARDENING_LDFLAGS}
 
 LIBS	=	${OBSD_LIB}
