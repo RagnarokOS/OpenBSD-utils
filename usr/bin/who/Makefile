@@ -18,8 +18,9 @@ all: ${OBJS}
 	${CC} ${LDFLAGS} -o ${PROG} ${OBJS} ${LIBS}
 
 install:
-	install -c -s -m 555 ${PROG} ${DESTDIR}/${PREFIX}/bin
-	install -c -m 444 ${PROG}.1 ${DESTDIR}/${MANDIR}/man1
+	install -d ${DESTDIR}/usr/bin ${DESTDIR}/usr/share/man/man1
+	install -c -s -m 555 ${PROG} ${DESTDIR}/usr/bin
+	install -c -m 444 ${PROG}.1 ${DESTDIR}/usr/share/man/man1
 
 clean:
 	rm -f ${PROG} ${OBJS}
