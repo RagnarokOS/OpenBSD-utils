@@ -1,11 +1,11 @@
 # Makefile for usr/bin
-# $Ragnarok: Makefile,v 1.8 2025/01/30 19:44:21 lecorbeau Exp $
+# $Ragnarok: Makefile,v 1.9 2025/01/31 00:17:34 lecorbeau Exp $
 
 MAKE	= make -C
 
 SUBDIRS	= apply arch banner cal comm csplit cut basename \
 	  dirname env expand false fmt fold join nl paste \
-	  printf teetrue uname uniq wc yes
+	  printf teetrue uname uniq wc xargs yes
 
 all:
 	for _dir in ${SUBDIRS}; do \
