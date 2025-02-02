@@ -1,9 +1,12 @@
 # Construct the Ragnarok base system
-# $Ragnarok: Makefile,v 1.2 2025/01/13 16:36:00 lecorbeau Exp $
+# $Ragnarok: Makefile,v 1.3 2025/02/02 15:43:05 lecorbeau Exp $
 
-MAKE = make -C
-
+MAKE	= make -C
 SUBDIRS	= bin usr
+
+PKG	= openbsd-utils
+VERSION	= 01
+PKGDIR	= ${PKG}_${VERSION}_amd64
 
 all: 
 	for _dir in ${SUBDIRS}; do \
@@ -21,6 +24,6 @@ clean:
 		done
 
 deb: all
-	mkdir -p ${DESTDIR}
-	cp -r DEBIAN/ ${DESTDIR}/
-	/usr/bin/dpkg-deb -b ${DESTDIR} .
+	mkdir -p ${PKGDIR}
+	cp -r DEBIAN/ ${PKGDIR}/
+	/usr/bin/dpkg-deb -b ${PKGDIR} .
